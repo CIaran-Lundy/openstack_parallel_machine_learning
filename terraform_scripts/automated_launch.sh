@@ -38,15 +38,11 @@ ssh_dir_path="/home/ubuntu/.ssh/"
 IFS=" "
 ssh_key_pair_names=$(cat terraform.tfstate | jq -r '.resources[] | select(.type=="openstack_compute_instance_v2") | .instances[].attributes.key_pair')
 
-echo "${#ssh_key_pair_names[@]}"
 array_index=0
 for key_pair in "${ssh_key_pair_names[@]}"
 do
 	echo $key_pair
 	ssh_key_file_name=$(echo $ssh_dir_path$(ls $ssh_dir_path | grep $key_pair))
-	#echo "ls "$ssh_dir_path" | grep "$ssh_key_pair_name""
-	#echo $ssh_key_file_name
-	echo $ssh_key_file_name
 	ssh_key_file_names_array[arrayIndex]=$ssh_key_file_name
 	array_index=$((k+1))
 done
@@ -55,3 +51,6 @@ echo $ssh_key_file_names_array
 
 #TODO: make set of unique values
 #for i in "${ssh_key_pair_names[@]}"; do b["$i"]=1; done
+
+
+#TODO: now scp required set-up scripts to hosts or run scripts via dsh
