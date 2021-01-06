@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-#terraform destroy
+terraform destroy
 
 
 etc_hosts_changes_file=etc_hosts_changes_file.txt
