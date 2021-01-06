@@ -4,14 +4,14 @@
 ###############NOTE: deploy terraform scripts
 
 
-#terraform init
-#terraform apply -auto-approve
+terraform init
+terraform apply -auto-approve
+
+
+###############NOTE: add hosts to /etc/hosts and /etc/dsh/machines.list and record changes to changes file
+
 
 floating_ip_instance_info=($(cat terraform.tfstate | jq -r '.resources[] | select(.type=="openstack_compute_floatingip_associate_v2") | .instances[].attributes.id'))
-
-
-###############NOTE: add hosts to /etc/hosts and /etc/dsh/machines.list
-
 
 IFS=/
 
@@ -23,34 +23,39 @@ do
 	echo $instance_id
 	instance_name=$(cat terraform.tfstate | jq -r '.resources[] | select(.type=="openstack_compute_instance_v2") | .instances[] | select(.attributes.id=="'$instance_id'") | .attributes.name')
 	echo $floating_ip $instance_name >> /etc/hosts
-       	echo $floating_ip >> /etc/dsh/machines.list	
+	echo $floating_ip $instance_name >> etc_hosts_changes_file.txt
+       	echo $floating_ip >> /etc/dsh/machines.list
+	echo $floating_ip >> etc_dsh_machines_list_changes_file.txt
+
 done
 
 unset IFS
 
 
-###############NOTE: get all ssh-keys specified in terraform.tfstate
+###############NOTE: get all ssh-keys in terraform.tfstate, make sure there is only 1, add it to /ect/dsh/dsh.conf
 
 
 #TODO: find home_dir programmatically
 ssh_dir_path="/home/ubuntu/.ssh/"
 
-IFS=" "
 ssh_key_pair_names=$(cat terraform.tfstate | jq -r '.resources[] | select(.type=="openstack_compute_instance_v2") | .instances[].attributes.key_pair')
 
-array_index=0
-for key_pair in "${ssh_key_pair_names[@]}"
+
+for key_pair in "${ssh_key_pair_names[@]}";
 do
-	echo $key_pair
-	ssh_key_file_name=$(echo $ssh_dir_path$(ls $ssh_dir_path | grep $key_pair))
-	ssh_key_file_names_array[arrayIndex]=$ssh_key_file_name
-	array_index=$((k+1))
+	ssh_key_pair_names_array=($key_pair)
+	unique_ssh_key_pair_names_array=($(echo "${ssh_key_pair_names_array[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+	if [ "${#unique_ssh_key_pair_names_array[@]}" -gt 1 ];
+	then
+		echo "there are "${#unique_ssh_key_pair_names_array[@]}" unique keys"
+		echo "key pairs are: "${unique_ssh_key_pair_names_array[@]}""
+		#TODO: make the script die here (and run clean-up?) if there is more than 1 key
+	fi
 done
 
-echo $ssh_key_file_names_array
-
-#TODO: make set of unique values
-#for i in "${ssh_key_pair_names[@]}"; do b["$i"]=1; done
+ssh_key_filename_and_path=$(echo $ssh_dir_path$(ls $ssh_dir_path | grep $(echo "${unique_ssh_key_pair_names_array}")))
 
 
-#TODO: now scp required set-up scripts to hosts or run scripts via dsh
+###############NOTE: now use cloud-init to init the cloud
+
+#do cloud things
