@@ -6,10 +6,6 @@ variable "flavor" {
   default = "m2.small"
 }
 
-data "template_file" "user_data" {
-  template = file("/home/ubuntu/openstack_parallel_machine_learning/terraform_scripts/learn-terraform-provisioning/scripts/add-ssh-web-app.yaml")
-}
-
 resource "openstack_networking_network_v2" "network_1" {
   name           = "network_1"
   admin_state_up = "true"
@@ -68,7 +64,7 @@ resource "openstack_compute_instance_v2" "cl25tf" {
   flavor_name     = var.flavor
   key_pair        = "cl25_theta_key"
   security_groups = [openstack_networking_secgroup_v2.secgroup.id]
-  user_data       = format("#cloud-config\nhostname: cl25tf-%02d\nruncmd:\n  - sudo mkdir /home/ubuntu/hello", count.index)
+  user_data       = templatefile("/home/ubuntu/openstack_parallel_machine_learning/terraform_scripts/cloud_config.yaml", { number = count.index } )
 
   network {
     #name = "network_1"

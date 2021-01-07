@@ -1,0 +1,4 @@
+#cloud-config
+format("hostname: cl25tf-%02d", number)
+runcmd:
+  - mkdir /home/ubuntu/bananas
