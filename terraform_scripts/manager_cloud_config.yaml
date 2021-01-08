@@ -1,0 +1,31 @@
+#cloud-config
+hostname: cl25tf-manager
+apt_update: true
+packages:
+  - nfs-common
+  - openjdk-8-jre-headless
+  - openjdk-8-jdk-headless
+  - scala
+  - virtualenv
+runcmd:
+  - sudo -i
+  - mkdir /shared
+  - chown -R ubuntu:ubuntu /shared
+  - echo "/shared *(rw,no_root_squash)" >> /etc/exports
+  - exportfs -rv
+  - mv /home/ubuntu /shared
+  - ln -s /shared/ubuntu /home
+  - wget http://www-us.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz
+  - tar xvf spark-2.4.4-bin-hadoop2.7.tgz
+  - sudo cp -r spark-2.4.4-bin-hadoop2.7 /usr/local/spark
+  - sudo chown -R ubuntu:ubuntu /usr/local/spark
+  - virtualenv -p python3.6 hail
+  - source hail/bin/activate
+  - pip install spark pyspark hail
+  - echo "source hail/bin/activate" >> ~/.bashrc
+  - echo "export PATH=$PATH:/usr/local/spark/bin" >> ~/.bashrc
+  - echo "export HAIL_HOME=$(pip3 show hail | grep Location | awk -F' ' '{print $2 \"/hail\"}')" >> ~/.bashrc
+  - cd /usr/local/spark/conf
+  - cp spark-env.sh.template spark-env.sh
+  - echo "export SPARK_MASTER_HOST=" >> spark-env.sh
+  - echo "export JAVA_HOME=/usr" >> spark-env.sh

@@ -1,0 +1,21 @@
+#cloud-config
+format("hostname: cl25tf-%02d", number)
+apt_update: true
+packages:
+  - nfs-common
+  - openjdk-8-jre-headless
+  - openjdk-8-jdk-headless
+  - scala
+  - virtualenv
+runcmd:
+  - sudo -i
+  - echo "am43hail-00:/shared /shared nfs auto,defaults 0 0" >> /etc/fstab 
+  - mkdir /shared
+  - chown -R ubuntu:ubuntu /shared
+  - mount /shared
+  - rm -rf /home/ubuntu
+  - ln -s /shared/ubuntu /home
+  - cp -r spark-2.4.4-bin-hadoop2.7 /usr/local/spark
+  - chown -R ubuntu:ubuntu /usr/local/spark
+  - source hail/bin/activate >> ~/.bashrc
+  - export PATH=$PATH:/usr/local/spark/bin >> ~/.bashrc
