@@ -2,11 +2,13 @@
 hostname: cl25tf-manager
 apt_update: true
 packages:
-  - nfs-common
+  - nfs-kernel-server
   - openjdk-8-jre-headless
   - openjdk-8-jdk-headless
   - scala
   - virtualenv
+  - python-pip
+  - python3-pip
 runcmd:
   - sudo -i
   - mkdir /shared
@@ -15,16 +17,16 @@ runcmd:
   - exportfs -rv
   - mv /home/ubuntu /shared
   - ln -s /shared/ubuntu /home
-  - wget http://www-us.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz
-  - tar xvf spark-2.4.4-bin-hadoop2.7.tgz
-  - sudo cp -r spark-2.4.4-bin-hadoop2.7 /usr/local/spark
+  - wget https://downloads.apache.org/spark/spark-3.0.1/spark-3.0.1-bin-hadoop2.7.tgz
+  - tar xvf spark-3.0.1-bin-hadoop2.7.tgz
+  - sudo cp -r spark-3.0.1-bin-hadoop2.7 /usr/local/spark
   - sudo chown -R ubuntu:ubuntu /usr/local/spark
   - virtualenv -p python3.6 hail
-  - source hail/bin/activate
+  - . hail/bin/activate
   - pip install spark pyspark hail
-  - echo "source hail/bin/activate" >> ~/.bashrc
-  - echo "export PATH=$PATH:/usr/local/spark/bin" >> ~/.bashrc
-  - echo "export HAIL_HOME=$(pip3 show hail | grep Location | awk -F' ' '{print $2 \"/hail\"}')" >> ~/.bashrc
+  - echo "source hail/bin/activate" >> /root/.bashrc
+  - echo "export PATH=$PATH:/usr/local/spark/bin" >> /root/.bashrc
+  - echo "export HAIL_HOME=$(pip3 show hail | grep Location | awk -F' ' '{print $2 "/hail"}')" >> /root/.bashrc
   - cd /usr/local/spark/conf
   - cp spark-env.sh.template spark-env.sh
   - echo "export SPARK_MASTER_HOST=" >> spark-env.sh
